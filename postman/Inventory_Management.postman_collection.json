@@ -1,0 +1,161 @@
+{
+  "info": {
+    "_postman_id": "c62db94d-2a13-41bb-927d-944f2ffbc7be",
+    "name": "Inventory Management API",
+    "description": "API collection for Inventory Management System with concurrency controls, stock reservations, releases, and audit history.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "variantId",
+      "value": "18c8cd16-1127-4751-9b93-8a24e7368ed2",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Inventory (Paginated)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory?page=1&limit=10&sortBy=createdAt&sortOrder=DESC",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "10" },
+            { "key": "sortBy", "value": "createdAt" },
+            { "key": "sortOrder", "value": "DESC" }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Search Inventory (SKU or Name)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory?search=RED",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory"],
+          "query": [
+            { "key": "search", "value": "RED" }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Filter Inventory (Status & Low Stock)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory?status=ACTIVE&lowStock=false",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory"],
+          "query": [
+            { "key": "status", "value": "ACTIVE" },
+            { "key": "lowStock", "value": "false" }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Stock",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"availableQuantity\": 120,\n  \"price\": 22.50,\n  \"reorderLevel\": 25,\n  \"status\": \"ACTIVE\",\n  \"reason\": \"Warehouse inventory reconciliation\",\n  \"referenceId\": \"REC-2026-001\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{variantId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory", "{{variantId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Reserve Stock",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quantity\": 5,\n  \"reason\": \"Customer order checkout\",\n  \"referenceId\": \"ORD-98765\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{variantId}}/reserve",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory", "{{variantId}}", "reserve"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Release Reserved Stock",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quantity\": 2,\n  \"reason\": \"Customer cancelled partial item\",\n  \"referenceId\": \"ORD-98765-CANCEL\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{variantId}}/release",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory", "{{variantId}}", "release"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Stock History",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/inventory/{{variantId}}/history?page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "inventory", "{{variantId}}", "history"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "20" }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

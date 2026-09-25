@@ -1,0 +1,7 @@
+node_modules/
+.env
+.pgdata/
+.pgsocket/
+coverage/
+*.log
+.DS_Store

@@ -1,0 +1,16 @@
+const INVENTORY_STATUS = Object.freeze({
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  OUT_OF_STOCK: 'OUT_OF_STOCK'
+});
+
+const INVENTORY_ACTION = Object.freeze({
+  STOCK_UPDATE: 'STOCK_UPDATE',
+  RESERVE: 'RESERVE',
+  RELEASE: 'RELEASE'
+});
+
+module.exports = {
+  INVENTORY_STATUS,
+  INVENTORY_ACTION
+};
