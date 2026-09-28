@@ -1,6 +1,10 @@
-### Prompt 1
+# User Prompts History
 
-<USER_REQUEST>
+This document contains all the original prompts used during the development of the Inventory Management System, formatted for readability.
+
+---
+
+## Prompt 1
 
 1. Objective
    Build an Inventory Management feature and use AI where appropriate during development.
@@ -61,14 +65,8 @@ also desing the database so we can understand what the details going to be store
 and our project structuer should be professional our response function and everything should be there we also gonig to create helper functions and constant constant message etc so implementd that way and for code quality and other thing use eslint and other requiremtn if needed
 so first give me the roadmap from this instruction
 </USER_REQUEST>
-<ADDITIONAL_METADATA>
-The current local time is: 2026-09-25T12:06:20+05:30.
-</ADDITIONAL_METADATA>
-<USER_SETTINGS_CHANGE>
-The user changed setting `Model Selection` from None to Gemini 3.8 Flash (Medium). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
-</USER_SETTINGS_CHANGE>
 
-<USER_REQUEST>
+---
 
 1. Objective
    Build an Inventory Management feature
@@ -134,25 +132,18 @@ also one file for postman so directly use it and add in postman
 and correctly written readme file straight to point and no long paragraphs commnets in api where needed only
 so first give me the roadmap from this instruction
 </USER_REQUEST>
-<ADDITIONAL_METADATA>
-The current local time is: 2026-09-25T12:31:23+05:30.
-</ADDITIONAL_METADATA>
-<USER_SETTINGS_CHANGE>
-The user changed setting `Model Selection` from None to Gemini 3.8 Flash (Medium). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
-</USER_SETTINGS_CHANGE>
 
-### Prompt 2
+---
 
-<USER_REQUEST>
+## Prompt 2
+
 i have analyzed the roadmap and we can start with it.
 </USER_REQUEST>
-<ADDITIONAL_METADATA>
-The current local time is: 2026-09-25T12:36:32+05:30.
-</ADDITIONAL_METADATA>
 
-### Prompt 3
+---
 
-<USER_REQUEST>
+## Prompt 3
+
 yes we can start
 and our postgres database will be this
 
@@ -165,36 +156,30 @@ DB_PORT=5432
 note: follow the roadmap and keep it intact also sequelize should be initialize with this
 sequelize-cli init
 </USER_REQUEST>
-<ADDITIONAL_METADATA>
-The current local time is: 2026-09-25T14:36:08+05:30.
-</ADDITIONAL_METADATA>
 
-### Prompt 4
+---
 
-<USER_REQUEST>
+## Prompt 4
+
 remove class controller service utils can we use directly in one objector just export indiviual funcitioins etc
 if we can, and does affect our server and security then change it.
 </USER_REQUEST>
-<ADDITIONAL_METADATA>
-The current local time is: 2026-09-25T14:54:38+05:30.
-</ADDITIONAL_METADATA>
 
-### Prompt 5
+---
 
-<USER_REQUEST>
+## Prompt 5
+
 type: Sequelize.ENUM('STOCK_UPDATE', 'RESERVE', 'RELEASE'),
 sort_by: Joi.string().valid('sku', 'price', 'available_quantity', 'reserved_quantity', 'created_at').default('created_at'),
 sort_order: Joi.string().valid('ASC', 'DESC', 'asc', 'desc').default('DESC')
 
 use constant for this
 </USER_REQUEST>
-<ADDITIONAL_METADATA>
-The current local time is: 2026-09-25T15:18:25+05:30.
-</ADDITIONAL_METADATA>
 
-### Prompt 6
+---
 
-<USER_REQUEST>
+## Prompt 6
+
 okay now create another repo in Inventory Management - AI
 inside frontend folder
 src/
@@ -252,11 +237,10 @@ Success states
 and use all the api FE should be responsive match all the screen theme and design shuld be precise accurate but not complex keep it simple and
 just follow the professional standard rule but quality should be perfect and nothing should break even with performance data utilization and considering standard FE or browser problems we have to desing it and code structe and quality should be optimize
 </USER_REQUEST>
-<ADDITIONAL_METADATA>
-The current local time is: 2026-09-25T15:31:41+05:30.
-</ADDITIONAL_METADATA>
 
-### Prompt 7
+---
+
+## Prompt 7
 
 <USER*REQUEST>
 SWRProvider.jsx:5 GET http://localhost:5000/api/inventory?page=1&limit=10&sort_by=available&sort_order=quantity 400 (Bad Request)
@@ -338,13 +322,8 @@ handleMouseUp_ @ (unknown)
 GET http://localhost:5000/api/inventory?page=1&limit=10&sort_by=available&sort_order=quantity 400 (Bad Request)
 you have used this in FE as fitler but its not even there if its not requirement part then remove it and if its then we mgiht have to add in BE
 </USER_REQUEST>
-<ADDITIONAL_METADATA>
-The current local time is: 2026-09-25T17:10:44+05:30.
-</ADDITIONAL_METADATA>
 
-### Prompt 8
-
-<USER_REQUEST>
+## Prompt 8
 
 B. Reserve Stock (POST /api/inventory/:variantId/reserve)
 Meaning: Customer adds item to checkout. Stock is temporarily locked so other buyers cannot purchase it
@@ -357,3 +336,5 @@ POST /api/inventory/:variantId/release here relasse on failure no success purcha
 also i want to know if product get reserve and reached the thresold limit for minimum product but they can be canacelled so will it still give me alert in this edge case?
 
 note : discussion only, no code changes
+
+---
