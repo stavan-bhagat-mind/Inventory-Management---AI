@@ -1,6 +1,28 @@
-# Inventory Management System API
+# Inventory Management System - Fullstack Monorepo
 
-Production-ready Inventory Management backend with PostgreSQL and Sequelize ORM. Features concurrency-safe inventory reservations, real-time stock updates, search & filters, and immutable audit history.
+## Project Overview
+This project is a complete, production-ready Inventory Management System. It allows businesses to track products, manage multiple variants, handle concurrent stock reservations (e.g., during checkout), and maintain a strict, immutable audit log of all inventory movements. The system is split into a robust Node.js/PostgreSQL backend and a responsive React frontend, housed in a single monorepo.
+
+## Backend Folder Structure
+```text
+/
+├── src/
+│   ├── config/          # Database and environment configurations
+│   ├── controllers/     # Express route handlers
+│   ├── middlewares/     # Express middlewares (Error handling, etc.)
+│   ├── migrations/      # Sequelize database migration files
+│   ├── models/          # Sequelize ORM schema definitions
+│   ├── routes/          # Express API route definitions
+│   ├── services/        # Core business logic and database transactions
+│   ├── utils/           # Helper functions and constants
+│   └── validations/     # Joi schema validations for incoming requests
+├── tests/               # Automated concurrency and unit tests
+├── frontend/            # React Client Application
+├── postman/             # API collection for testing
+├── .env                 # Root environment variables
+├── package.json         # Backend dependencies and root scripts
+└── server.js            # Node.js entry point
+```
 
 ---
 
