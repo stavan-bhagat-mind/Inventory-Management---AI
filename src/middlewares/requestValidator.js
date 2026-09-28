@@ -1,8 +1,11 @@
-const AppError = require('../utils/appError');
 const HTTP_STATUS = require('../constants/httpStatus');
+const ApiResponse = require('../utils/apiResponse');
+const MESSAGES = require('../constants/messages');
 
 const validate = (schema, source = 'body') => {
-  return (req, _res, next) => {
+  return (req, res, next) => {
+    if (!schema) return next();
+
     const { error, value } = schema.validate(req[source], {
       abortEarly: false,
       stripUnknown: true
@@ -14,11 +17,15 @@ const validate = (schema, source = 'body') => {
         message: detail.message.replace(/['"]/g, '')
       }));
 
-      return next(new AppError('Validation error', HTTP_STATUS.BAD_REQUEST, details));
+      return ApiResponse.error(res, {
+        statusCode: HTTP_STATUS.BAD_REQUEST,
+        message: MESSAGES.VALIDATION_ERROR,
+        errors: details
+      });
     }
 
     req[source] = value;
-    return next();
+    next();
   };
 };
 

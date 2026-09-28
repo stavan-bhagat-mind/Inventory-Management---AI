@@ -1,23 +1,24 @@
 const express = require('express');
+const router = express.Router();
 const inventoryController = require('../controllers/inventory.controller');
 const validate = require('../middlewares/requestValidator');
 const {
-  getInventorySchema,
   variantIdParamSchema,
+  listInventoryQuerySchema,
   updateStockSchema,
   reserveStockSchema,
   releaseStockSchema,
-  getHistorySchema
+  getHistoryQuerySchema
 } = require('../validations/inventory.validation');
 
-const router = express.Router();
-
+// GET /api/inventory - View, search, filter, paginate inventory
 router.get(
   '/',
-  validate(getInventorySchema, 'query'),
+  validate(listInventoryQuerySchema, 'query'),
   inventoryController.getInventory
 );
 
+// PATCH /api/inventory/:variantId - Update stock, price, status, reorder level
 router.patch(
   '/:variantId',
   validate(variantIdParamSchema, 'params'),
@@ -25,6 +26,7 @@ router.patch(
   inventoryController.updateStock
 );
 
+// POST /api/inventory/:variantId/reserve - Reserve stock
 router.post(
   '/:variantId/reserve',
   validate(variantIdParamSchema, 'params'),
@@ -32,6 +34,7 @@ router.post(
   inventoryController.reserveStock
 );
 
+// POST /api/inventory/:variantId/release - Release reserved stock
 router.post(
   '/:variantId/release',
   validate(variantIdParamSchema, 'params'),
@@ -39,11 +42,12 @@ router.post(
   inventoryController.releaseStock
 );
 
+// GET /api/inventory/:variantId/history - View stock history
 router.get(
   '/:variantId/history',
   validate(variantIdParamSchema, 'params'),
-  validate(getHistorySchema, 'query'),
-  inventoryController.getHistory
+  validate(getHistoryQuerySchema, 'query'),
+  inventoryController.getInventoryHistory
 );
 
 module.exports = router;

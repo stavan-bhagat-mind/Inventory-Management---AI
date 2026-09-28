@@ -8,9 +8,9 @@ const env = {
   PORT: parseInt(process.env.PORT, 10) || 3000,
   DB: {
     NAME: process.env.DB_NAME || 'inventory_db',
-    USER: process.env.DB_USER || 'stavan',
-    PASSWORD: process.env.DB_PASSWORD || '',
-    HOST: process.env.DB_HOST || 'localhost',
+    USER: process.env.DB_USER || 'postgres',
+    PASSWORD: process.env.DB_PASSWORD || 'Mind@1234',
+    HOST: process.env.DB_HOST || '192.168.1.237',
     PORT: parseInt(process.env.DB_PORT, 10) || 5432,
     LOGGING: process.env.DB_LOGGING === 'true',
     POOL: {

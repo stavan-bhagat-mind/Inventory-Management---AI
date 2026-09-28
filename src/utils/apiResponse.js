@@ -1,32 +1,35 @@
-class ApiResponse {
-  static success(res, statusCode, message, data = null, meta = undefined) {
-    const payload = {
-      success: true,
-      statusCode,
-      message,
-      data
-    };
+const HTTP_STATUS = require('../constants/httpStatus');
 
-    if (meta !== undefined) {
-      payload.meta = meta;
-    }
+const success = (res, { statusCode = HTTP_STATUS.OK, message = 'Success', data = null, meta = null }) => {
+  const response = {
+    success: true,
+    statusCode,
+    message,
+    data
+  };
 
-    return res.status(statusCode).json(payload);
+  if (meta) {
+    response.meta = meta;
   }
 
-  static error(res, statusCode, message, details = null) {
-    const payload = {
-      success: false,
-      statusCode,
-      message
-    };
+  return res.status(statusCode).json(response);
+};
 
-    if (details !== null) {
-      payload.error = details;
-    }
+const error = (res, { statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR, message = 'An error occurred', errors = null }) => {
+  const response = {
+    success: false,
+    statusCode,
+    message
+  };
 
-    return res.status(statusCode).json(payload);
+  if (errors) {
+    response.errors = errors;
   }
-}
 
-module.exports = ApiResponse;
+  return res.status(statusCode).json(response);
+};
+
+module.exports = {
+  success,
+  error
+};

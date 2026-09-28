@@ -1,341 +1,156 @@
-# Inventory Management System
+# Inventory Management System API
 
-Production-ready backend API for multi-variant product inventory management with pessimistic row locking for concurrency protection, transactional audit trails, and Joi payload validation.
-
----
-
-## Tech Stack
-- **Runtime:** Node.js (v18+)
-- **Framework:** Express.js
-- **Database:** PostgreSQL (v14+)
-- **ORM:** Sequelize
-- **Validation:** Joi
-- **Testing:** Jest + Supertest
+Production-ready Inventory Management backend with PostgreSQL and Sequelize ORM. Features concurrency-safe inventory reservations, real-time stock updates, search & filters, and immutable audit history.
 
 ---
 
-## Database Architecture
+## 1. Quick Start
 
-```mermaid
-erDiagram
-    PRODUCTS ||--|{ PRODUCT_VARIANTS : has
-    PRODUCT_VARIANTS ||--|{ INVENTORY_HISTORIES : tracks
+### Prerequisites
+- Node.js >= 18
+- PostgreSQL >= 14
 
-    PRODUCTS {
-        uuid id PK
-        string name
-        text description
-    }
-
-    PRODUCT_VARIANTS {
-        uuid id PK
-        uuid product_id FK
-        string sku UK
-        jsonb attributes
-        decimal price
-        integer available_quantity
-        integer reserved_quantity
-        integer reorder_level
-        enum status
-    }
-
-    INVENTORY_HISTORIES {
-        uuid id PK
-        uuid variant_id FK
-        enum action_type
-        integer quantity_change
-        integer previous_available
-        integer new_available
-        integer previous_reserved
-        integer new_reserved
-        string reason
-        string reference_id
-        timestamp created_at
-    }
-```
-
-### Business Rules & Constraints
-- **Inventory Pool:** `Total Stock = available_quantity + reserved_quantity`.
-- **Reserve:** `available_quantity -= qty`, `reserved_quantity += qty`. Fails if `qty > available_quantity`.
-- **Release:** `available_quantity += qty`, `reserved_quantity -= qty`. Fails if `qty > reserved_quantity`.
-- **Integrity Constraints:** Database-level `CHECK (available_quantity >= 0)` and `CHECK (reserved_quantity >= 0)`.
-- **Audit:** Every stock modification, reservation, or release writes an immutable `inventory_histories` entry inside the same database transaction.
-
----
-
-## Quick Start
-
-### 1. Install Dependencies
+### Installation
 ```bash
+# Install dependencies
 npm install
+
+# Setup environment variables
+cp .env.example .env
 ```
 
-### 2. Configure Environment
-Copy `.env.example` to `.env` and set PostgreSQL credentials:
-```env
-PORT=3000
-DB_NAME=inventory_db
-DB_USER=postgres
-DB_PASSWORD=your_password
-DB_HOST=localhost
-DB_PORT=5432
-DB_LOGGING=false
-```
-
-### 3. Seed Database
-Seeds default T-Shirt variants (Small/Red, Medium/Red, Large/Red, Small/Blue):
+### Database Migration & Seeding
 ```bash
+# Run migrations (creates products, product_variants, inventory_histories)
+npm run migrate
+
+# Seed sample data (T-Shirt product with multiple variants)
 npm run seed
 ```
 
-### 4. Run Application
+### Run Server
 ```bash
-# Development
+# Development (with nodemon)
 npm run dev
 
 # Production
 npm start
 ```
-
-### 5. Run Tests & Linter
-```bash
-# Run unit, integration, and concurrency race tests
-npm test
-
-# Linting
-npm run lint
-```
+Default server URL: `http://localhost:5000`
 
 ---
 
-## API Endpoints
+## 2. API Endpoints
 
-### 1. View Inventory
-`GET /api/inventory`
+### Health Check
+- `GET /api/health` — Service liveness and uptime check.
 
-**Query Parameters:**
-| Param | Type | Description |
-|---|---|---|
-| `search` | String | Case-insensitive match on SKU or Product Name |
-| `status` | String | `ACTIVE`, `INACTIVE`, `OUT_OF_STOCK` |
-| `lowStock` | Boolean | Filter items where `available_quantity <= reorder_level` |
-| `page` | Integer | Default: 1 |
-| `limit` | Integer | Default: 10, Max: 100 |
-| `sortBy` | String | `sku`, `price`, `availableQuantity`, `reservedQuantity`, `createdAt` |
-| `sortOrder` | String | `ASC` or `DESC` (Default: `DESC`) |
+### Inventory
+- `GET /api/inventory` — View, search, filter, and paginate inventory.
+  - **Query Params**:
+    - `search`: SKU or Product Name substring
+    - `status`: `ACTIVE`, `INACTIVE`, `OUT_OF_STOCK`, `DISCONTINUED`
+    - `low_stock`: `true` (filters where `available_quantity <= reorder_level`)
+    - `page`: default `1`
+    - `limit`: default `10` (max 100)
+    - `sort_by`: `sku`, `price`, `available_quantity`, `created_at`
+    - `sort_order`: `ASC` or `DESC`
 
-**Sample Response (`200 OK`):**
-```json
-{
-  "success": true,
-  "statusCode": 200,
-  "message": "Inventory retrieved successfully",
-  "data": [
+- `PATCH /api/inventory/:variantId` — Adjust stock quantity, price, status, or reorder level.
+  - **Body**:
+    ```json
     {
-      "id": "18c8cd16-1127-4751-9b93-8a24e7368ed2",
-      "sku": "TSHIRT-RED-M",
-      "attributes": { "size": "Medium", "color": "Red" },
-      "price": "21.99",
-      "availableQuantity": 100,
-      "reservedQuantity": 10,
-      "reorderLevel": 20,
+      "available_quantity": 60,
+      "price": 22.50,
+      "reorder_level": 15,
       "status": "ACTIVE",
-      "product": {
-        "id": "550e8400-e29b-41d4-a716-446655440000",
-        "name": "Classic Cotton T-Shirt",
-        "description": "Premium quality 100% combed cotton unisex crewneck t-shirt."
-      }
+      "reason": "Restock batch #401",
+      "reference_id": "PO-401"
     }
-  ],
-  "meta": {
-    "totalItems": 1,
-    "itemCount": 1,
-    "itemsPerPage": 10,
-    "totalPages": 1,
-    "currentPage": 1,
-    "hasNextPage": false,
-    "hasPrevPage": false
-  }
-}
-```
+    ```
+
+- `POST /api/inventory/:variantId/reserve` — Reserve available stock (atomic & concurrency-safe).
+  - **Body**:
+    ```json
+    {
+      "quantity": 2,
+      "reason": "Order hold #9821",
+      "reference_id": "ORD-9821"
+    }
+    ```
+
+- `POST /api/inventory/:variantId/release` — Release reserved stock back to available pool.
+  - **Body**:
+    ```json
+    {
+      "quantity": 2,
+      "reason": "Cancelled order #9821",
+      "reference_id": "ORD-9821"
+    }
+    ```
+
+- `GET /api/inventory/:variantId/history` — Audit trail of all stock movements.
+  - **Query Params**: `action_type`, `page`, `limit`
 
 ---
 
-### 2. Update Stock
-`PATCH /api/inventory/:variantId`
+## 3. Concurrency & Integrity Model
 
-**Request Body:**
-```json
-{
-  "availableQuantity": 120,
-  "price": 22.50,
-  "reorderLevel": 25,
-  "status": "ACTIVE",
-  "reason": "Shipment received",
-  "referenceId": "PO-10023"
-}
-```
-
-**Response (`200 OK`):**
-```json
-{
-  "success": true,
-  "statusCode": 200,
-  "message": "Inventory stock updated successfully",
-  "data": {
-    "id": "18c8cd16-1127-4751-9b93-8a24e7368ed2",
-    "sku": "TSHIRT-RED-M",
-    "availableQuantity": 120,
-    "reservedQuantity": 10,
-    "price": "22.50",
-    "status": "ACTIVE"
-  }
-}
-```
+- **Inventory Model**:
+  - `Total Stock = available_quantity + reserved_quantity`
+  - Reserving moves stock: `available_quantity -= Q`, `reserved_quantity += Q`.
+  - Releasing moves stock: `available_quantity += Q`, `reserved_quantity -= Q`.
+- **Concurrency Protection**:
+  - Uses PostgreSQL row-level locking (`SELECT ... FOR UPDATE` via `t.LOCK.UPDATE`) inside transactions.
+  - Concurrent requests trying to reserve the same variant are serialized; race conditions, double allocations, and negative stock are strictly prevented.
+- **Database Constraints**:
+  - `CHECK (available_quantity >= 0)`
+  - `CHECK (reserved_quantity >= 0)`
+  - `CHECK (price >= 0)`
 
 ---
 
-### 3. Reserve Stock
-`POST /api/inventory/:variantId/reserve`
+## 4. Concurrency Test
 
-**Request Body:**
-```json
-{
-  "quantity": 5,
-  "reason": "Customer checkout",
-  "referenceId": "ORD-55412"
-}
+Run the automated race-condition test:
+```bash
+npm run test:concurrency
 ```
-
-**Response (`200 OK`):**
-```json
-{
-  "success": true,
-  "statusCode": 200,
-  "message": "Stock reserved successfully",
-  "data": {
-    "id": "18c8cd16-1127-4751-9b93-8a24e7368ed2",
-    "sku": "TSHIRT-RED-M",
-    "availableQuantity": 95,
-    "reservedQuantity": 15,
-    "status": "ACTIVE"
-  }
-}
-```
-
-**Error Response (`409 Conflict`):**
-```json
-{
-  "success": false,
-  "statusCode": 409,
-  "message": "Requested reservation quantity exceeds available stock. Available: 2, Requested: 5",
-  "error": {
-    "availableQuantity": 2,
-    "requestedQuantity": 5
-  }
-}
-```
+Fires 10 parallel reservation requests against a stock of 5 to prove exactly 5 succeed (HTTP 200) and 5 are safely rejected (HTTP 400).
 
 ---
 
-### 4. Release Reserved Stock
-`POST /api/inventory/:variantId/release`
+## 5. Postman Collection
 
-**Request Body:**
-```json
-{
-  "quantity": 2,
-  "reason": "Customer cancelled item",
-  "referenceId": "ORD-55412-CANCEL"
-}
-```
-
-**Response (`200 OK`):**
-```json
-{
-  "success": true,
-  "statusCode": 200,
-  "message": "Reserved stock released successfully",
-  "data": {
-    "id": "18c8cd16-1127-4751-9b93-8a24e7368ed2",
-    "sku": "TSHIRT-RED-M",
-    "availableQuantity": 97,
-    "reservedQuantity": 13,
-    "status": "ACTIVE"
-  }
-}
-```
+Import `postman/Inventory_Management.postman_collection.json` into Postman. Pre-configured with environment variables and sample requests.
 
 ---
 
-### 5. View Stock History
-`GET /api/inventory/:variantId/history`
+## 6. Frontend (React + Vite + Tailwind CSS)
 
-**Query Parameters:**
-- `page`: default 1
-- `limit`: default 10
-- `actionType`: `STOCK_UPDATE`, `RESERVE`, `RELEASE` (optional)
+### Directory Structure
+Frontend lives in `frontend/` with structured routes, SWR caching, error boundary, and dark/light mode support.
 
-**Response (`200 OK`):**
-```json
-{
-  "success": true,
-  "statusCode": 200,
-  "message": "Inventory history retrieved successfully",
-  "data": {
-    "variant": {
-      "id": "18c8cd16-1127-4751-9b93-8a24e7368ed2",
-      "sku": "TSHIRT-RED-M",
-      "availableQuantity": 97,
-      "reservedQuantity": 13,
-      "status": "ACTIVE"
-    },
-    "histories": [
-      {
-        "id": "23351d3b-001d-40cf-82e1-4566778899aa",
-        "actionType": "RELEASE",
-        "quantityChange": 2,
-        "previousAvailable": 95,
-        "newAvailable": 97,
-        "previousReserved": 15,
-        "newReserved": 13,
-        "reason": "Customer cancelled item",
-        "referenceId": "ORD-55412-CANCEL",
-        "createdAt": "2026-09-25T07:15:00.000Z"
-      }
-    ]
-  },
-  "meta": {
-    "totalItems": 1,
-    "itemCount": 1,
-    "itemsPerPage": 10,
-    "totalPages": 1,
-    "currentPage": 1,
-    "hasNextPage": false,
-    "hasPrevPage": false
-  }
-}
+### Run Frontend
+```bash
+# Run from root
+npm run client:dev
+
+# Or run from frontend folder
+cd frontend
+npm run dev
 ```
+Default UI URL: `http://localhost:3000`
 
----
+### Implemented Features
+- Real-time inventory table with summary metrics (Total SKUs, Available, Reserved, Low Stock alerts).
+- Search bar (by SKU or Product name).
+- Status filters (`ACTIVE`, `INACTIVE`, `OUT_OF_STOCK`, `DISCONTINUED`) & Low Stock toggle.
+- Server-side sorting & pagination.
+- Reserve Stock modal with live balance validation.
+- Release Reserved Stock modal with live balance validation.
+- Update Stock / Variant attributes modal.
+- Immutable stock history audit log viewer.
+- Light/Dark mode with automatic system detection.
+- Error boundary and responsive mobile navigation.
 
-## Concurrency Handling Strategy
-
-High-traffic operations (reservation, release, stock adjustments) execute inside a managed database transaction with PostgreSQL row-level locks:
-```javascript
-// Row-level lock ensures serializable updates per variant without race conditions
-const variant = await ProductVariant.findByPk(variantId, {
-  lock: t.LOCK.UPDATE, // translates to SELECT ... FOR UPDATE
-  transaction: t
-});
-```
-- **Mutual Exclusion:** Competing requests for the same variant wait their turn on the database lock.
-- **Atomicity:** Audit history creation and variant quantity mutations commit or rollback together.
-- **Stress-tested:** Verified via `tests/concurrency.test.js` where 10 parallel requests compete for limited stock with zero race conditions or negative quantities.
-
----
-
-## Postman Collection
-Import file located at:
-`postman/Inventory_Management.postman_collection.json`
-Preconfigured with base URL (`http://localhost:3000`) and sample requests.

@@ -1,55 +1,41 @@
+require('dotenv').config();
 const app = require('./app');
-const env = require('./config/env');
 const { sequelize } = require('./models');
 
-const startServer = async () => {
+const PORT = process.env.PORT || 5000;
+
+async function startServer() {
   try {
+    // Authenticate database connection
     await sequelize.authenticate();
-    console.log('[DB] Database connection established successfully.');
+    console.log('[Database] PostgreSQL connection established successfully.');
 
-    // Ensure models are synced in development if needed
-    if (env.NODE_ENV === 'development') {
-      await sequelize.sync();
-      console.log('[DB] Models synced with database.');
-    }
-
-    const server = app.listen(env.PORT, () => {
-      console.log(`[SERVER] Inventory API running on port ${env.PORT} in ${env.NODE_ENV} mode.`);
+    const server = app.listen(PORT, () => {
+      console.log(`[Server] Inventory Management API running on port ${PORT}`);
+      console.log(`[Server] Health check: http://localhost:${PORT}/api/health`);
+      console.log(`[Server] Inventory endpoint: http://localhost:${PORT}/api/inventory`);
     });
 
-    const gracefulShutdown = async (signal) => {
-      console.log(`\n[SERVER] Received ${signal}. Starting graceful shutdown...`);
+    const shutdown = async (signal) => {
+      console.log(`\n[Server] Received ${signal}. Gracefully shutting down...`);
       server.close(async () => {
-        console.log('[SERVER] HTTP server closed.');
         try {
           await sequelize.close();
-          console.log('[DB] Database connection pool closed.');
+          console.log('[Database] Database connections closed.');
           process.exit(0);
-        } catch (dbErr) {
-          console.error('[DB] Error during database shutdown:', dbErr);
+        } catch (err) {
+          console.error('[Database] Error during disconnect:', err);
           process.exit(1);
         }
       });
-
-      // Force shutdown after timeout
-      setTimeout(() => {
-        console.error('[SERVER] Forcefully shutting down due to timeout.');
-        process.exit(1);
-      }, 10000);
     };
 
-    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-    return server;
+    process.on('SIGINT', () => shutdown('SIGINT'));
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
   } catch (error) {
-    console.error('[SERVER] Failed to start server:', error);
+    console.error('[Server] Failed to connect to database:', error.message);
     process.exit(1);
   }
-};
-
-if (require.main === module) {
-  startServer();
 }
 
-module.exports = startServer;
+startServer();
